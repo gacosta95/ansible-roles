@@ -1,0 +1,57 @@
+---
+  - name: Add the user tomcat  with a specific uid and a primary group of 'admin'
+    user:
+      name: tomcat
+      comment: tomcat user
+      uid: 1040
+      group: adm
+
+  - name: Change file ownership, group and permissions
+    ansible.builtin.file:
+      path: /usr/share/tomcat
+      owner: tomcat
+      group: adm
+      state: directory
+                            
+  - name: Extract foo.tgz into /var/lib/foo
+    unarchive:
+      src: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.44/bin/apache-tomcat-9.0.44.tar.gz
+      dest: /usr/share/tomcat
+      remote_src: true
+      extra_opts: "--strip-components=1"
+      creates: /usr/share/tomcat/bin
+  - name: Copy file with owner and permissions
+    copy:
+      src: /etc/ansible/roles/proxy_reverso/files/tomcat.service
+      dest: /etc/systemd/system/
+      owner: tomcat
+      group: adm
+      mode: '0644'
+  - name: Recursively change ownership of a directory
+    ansible.builtin.file:
+      path: /usr/share/tomcat/
+      state: directory
+      recurse: yes
+      owner: tomcat
+      group: adm
+  - name: Copy file with owner and permissions
+    copy:
+      src: /etc/ansible/roles/proxy_reverso/files/tomcat.conf
+      dest: /etc/nginx/conf.d
+      owner: root
+      group: root
+      mode: '0644'
+  - name: Copy file xml tomcat
+    copy:
+      src: /etc/ansible/roles/proxy_reverso/files/tomcat-users.xml
+      dest: /usr/share/tomcat/conf/
+      owner: tomcat
+      group: adm
+      mode: '0644'
+  - name: restart service tomcat on centos, in all cases, also issue daemon-reload to pick up config changes
+    systemd:
+      state: restarted
+      daemon_reload: yes
+      name: tomcat
+      enabled: yes
+

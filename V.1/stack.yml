@@ -1,0 +1,16 @@
+---
+- name: Devops Challenge - Ansible | Gabriel Alves
+  hosts: all
+  remote_user: centos
+  become: yes
+  become_method: sudo
+
+  roles:
+    - swap_create
+    - magento
+    - db_create
+    - wordpress
+    - site_simples
+    - proxy_reverso
+      #    - certbot
+    - reboot

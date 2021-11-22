@@ -1,0 +1,129 @@
+---
+  - name: Upgrade all packages
+    dnf:
+      name: "*"
+      state: latest
+#Instala todos os pacotes essenciais para o Lemp, 
+  - name: Instalando pacotes
+    dnf:
+      name:
+        - nginx
+        - mariadb-server
+        - php-cli
+        - python3-PyMySQL
+        - unzip
+        - php
+        - php-fpm
+        - php-ctype
+        - php-curl
+        - php-dom
+        - php-gd
+        - php-mbstring
+        - php-hash
+        - php-openssl
+        - php-simplexml
+        - php-spl
+        - php-libxml
+        - php-xsl
+        - php-json
+        - php-iconv
+        - php-bcmath
+        - php-pdo_mysql
+        - php-pecl-zip
+        - php-xmlrpc
+        - php-xml
+        - php-mysqlnd
+        - php-intl
+        - php-opcache
+        - php-soap
+        - php-bcmath
+        - php-json
+        - php-zip
+        - php-cli
+        - java-1.8.0-openjdk  
+      state: latest
+                       
+    #Realiza o start e o enable  dos serviços
+
+  - name: Disable SELinux
+    selinux:
+      state: disabled               
+  - name: Start service php-fpm
+    service:
+      name: php-fpm
+      state: started
+  - name: Enable service php-fpm
+    service:
+      name: php-fpm
+      enabled: yes
+  - name: Start  nginx
+    service:
+      name: nginx
+      state: started
+  - name: Enable nginx
+    service:
+      name: nginx
+      enabled: yes
+  - name: Start mariadb
+    service:
+      name: mariadb
+      state: started
+  - name: Enable service mariadb
+    service:
+      name: mariadb
+      enabled: yes
+                                            
+#Removendo o arquivo php.ini padrão e adicionando o arquivo ja configurado 
+  - name: Removendo php.ini padrão do /etc
+    file:
+      path: /etc/php.ini
+      state: absent
+  - name: Adicionado arquivo configurado
+    copy:
+      src: /etc/ansible/roles/magento/files/php.ini
+      dest: /etc
+      owner: root
+      group: root
+      mode: '744'
+    notify: 
+    - Restart php-fpm
+                                                                      
+#instalação magento
+  - name: Magento download and unzip 
+    unarchive:
+      src: https://github.com/magento/magento2/archive/2.2.zip
+      dest: /var/www/html
+      remote_src: True
+  - name: install composer
+    ansible.builtin.shell:
+      cmd: curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/bin --filename=composer
+      warn: false
+    tags:
+      - Install Role
+    notify:
+      - Restart php-fpm
+
+  - name: Downgrade composer
+    ansible.builtin.shell:
+      cmd: composer self-update 1.9.0
+  
+  - name: Composer install magento
+    composer:
+      command: install
+      working_dir: /var/www/html/magento2-2.2/
+
+  - name: update permissions magento
+    file:
+      path: /var/www/html/magento2-2.2
+      state: directory
+      recurse: yes
+      owner: nginx
+      group: nginx
+
+  - name: Copy file with owner and permissions
+    copy:
+      src: /etc/ansible/roles/magento/files/Vmagento.conf
+      dest: /etc/nginx/conf.d
+      owner: root
+      group: root
+      mode: '744'

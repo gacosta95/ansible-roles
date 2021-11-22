@@ -1,0 +1,26 @@
+---
+  - name: Wordpress download and unzip
+    unarchive: 
+      src: https://wordpress.org/latest.tar.gz
+      dest: /var/www/html
+      remote_src: True
+                                                   
+  - name: Recursively change ownership of a directory
+    file:
+      path: /var/www/html/wordpress/
+      state: directory
+      recurse: yes
+      owner: nginx
+      group: nginx
+  # Adiconando virtual host no conf.d do nginx para o magento
+  - name: Adicionando wordpress.conf 
+    copy:
+      src: /etc/ansible/roles/wordpress/files/wordpress.conf
+      dest: /etc/nginx/conf.d
+      owner: root
+      group: root
+      mode: '744'
+  - name: Restart nginx
+    service:
+      name: nginx 
+      state: restarted

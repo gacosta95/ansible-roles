@@ -1,0 +1,51 @@
+---
+ - name: Create a directory site if it does not exist
+   ansible.builtin.file:
+    path: /var/www/html/site
+    state: directory
+    mode: '744'
+ - name: Recursively change ownership of a directory
+   file:
+    path: /var/www/html/site
+    state: directory
+    recurse: yes
+    owner: nginx
+    group: nginx
+
+ - name: Add file done on /html
+   copy:
+    src: /etc/ansible/roles/site_simples/files/index.php
+    dest: /var/www/html/site
+    owner: nginx
+    group: nginx
+    mode: '744'
+
+ - name: Add file done on /html
+   copy:
+    src: /etc/ansible/roles/site_simples/files/www.conf
+    dest: /etc/php-fpm.d
+    owner: root
+    group: root
+    mode: '744'
+ 
+ - name: Restart php-fpm
+   service: 
+    name: php-fpm
+    state: restarted
+ - name: Restart nginx
+   service:
+    name: nginx
+    state: restarted
+ 
+ - name: Add Vhost Nginx
+   copy:
+     src: /etc/ansible/roles/site_simples/files/Vsite_simples.conf
+     dest: /etc/nginx/conf.d
+     owner: root
+     group: root
+     mode: '744'
+ - name: Restart nginx
+   service:
+     name: nginx
+     state: restarted
+

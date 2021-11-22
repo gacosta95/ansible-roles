@@ -1,0 +1,33 @@
+---
+#Criação de banco de dados e usuário do banco
+  - name: Criando banco de dados para o Magento
+    mysql_db:
+      name: magentodb
+      state: present
+  - name: Criando user para o banco e atribuindo privilegios
+    mysql_user:
+      name: magento_user
+      password: "{{ db_password }}"
+      priv: '*.*:ALL'
+      state: present
+  - name: Adicionado arquivo configurado
+    copy:
+      src: /etc/ansible/roles/magento/files/magento.conf
+      dest: /etc/php-fpm.d
+      owner: root
+      group: root
+      mode: '744'
+    notify:
+    - Restart php-fpm
+                                                                          
+  # Realizando a criação do banco de dados do wordpress.
+  - name: Criando banco de dados Wordpress
+    mysql_db:
+      name: wordpressdb
+      state: present
+  - name: Criando user para o banco do wordpress
+    mysql_user:
+      name: wp_user
+      password: "{{ db_wordpress_pass }}"
+      priv: '*.*:ALL'
+      state: present
